@@ -2,6 +2,8 @@
 
 ```shell
 brew install libimobiledevice libplist
+
+./macbuild.sh
 ```
 
 
