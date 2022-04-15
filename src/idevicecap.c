@@ -141,36 +141,45 @@ int main(int argc, char *argv[])
     if (udid == NULL)
     {
 
-        int32_t count = 0;
-        while (count == 0 || udid == NULL)
+        int32_t dev_count = 0;
+        int usb_dev_count = 0;
+        while (usb_dev_count == 0 || udid == NULL)
         {
             idevice_info_t *devices = NULL;
-            assert(IDEVICE_E_SUCCESS == idevice_get_device_list_extended(&devices, &count));
-            switch (count)
-            {
-            case 0:
-                fprintf(stderr, "\r[*] waiting for devices...");
-                sleep(1);
-                break;
-            case 1:
-                udid = strdup(devices[0]->udid);
-                if (devices[0]->conn_type != CONNECTION_USBMUXD)
+            assert(IDEVICE_E_SUCCESS == idevice_get_device_list_extended(&devices, &dev_count));
+
+            int last_usb_dev_id = -1;
+            
+            usb_dev_count = 0;
+            for(int32_t i=0;i<dev_count;i++){
+                if (devices[i]->conn_type == CONNECTION_USBMUXD)
                 {
-                    fprintf(stderr, "\r[!] you must use usb to connect with deivce\n");
-                }
-                break;
-            default:
-                fprintf(stderr, "\r[!] more than one device, you have to specify device ID\n");
-                for (int32_t i = 0; i < 32; i++)
-                {
-                    fprintf(stderr, "%s\n", devices[i]->udid);
+                    last_usb_dev_id =  i;
+                    usb_dev_count += 1;
                 }
             }
+            
+            if(usb_dev_count == 0){
+                fprintf(stderr, "\r[*] wating for usb device...");
+                fflush(stderr);
+                sleep(1);
+            }else if(usb_dev_count > 1){
+                fprintf(stderr, "\r[!] more than one USB device, you have to specify device ID\n");
+                for (int32_t i = 0; i < dev_count; i++)
+                {
+                    if (devices[0]->conn_type == CONNECTION_USBMUXD){
+                        fprintf(stderr, "%s\n", devices[i]->udid);
+                    }   
+                }
+            }else{
+                udid = strdup(devices[last_usb_dev_id]->udid);
+            }
+            
             if (devices != NULL)
             {
                 idevice_device_list_extended_free(devices);
             }
-            if (count > 1)
+            if (dev_count > 1)
             {
                 abort();
             }
