@@ -179,7 +179,7 @@ int main(int argc, char *argv[])
             {
                 idevice_device_list_extended_free(devices);
             }
-            if (dev_count > 1)
+            if (usb_dev_count > 1)
             {
                 abort();
             }
